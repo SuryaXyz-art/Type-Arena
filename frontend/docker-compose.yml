@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  flash-markets:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+      - "3000:3000"
+    volumes:
+      - ./:/app
+      - cargo-cache:/usr/local/cargo/registry
+    environment:
+      - RUST_LOG=info
+    command: |
+      bash -c "
+        echo '🚀 Building Flash Markets...' &&
+        cargo build --release --target wasm32-unknown-unknown &&
+        echo '✅ Build complete!' &&
+        echo '🔧 Starting Linera node...' &&
+        linera net up &&
+        echo '📡 Starting GraphQL service on port 8080...' &&
+        linera service --port 8080
+      "
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  cargo-cache:
