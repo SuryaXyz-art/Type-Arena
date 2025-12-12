@@ -1,8 +1,8 @@
 use linera_sdk::views::{MapView, RegisterView, ViewStorageContext};
-use linera_views::views::{GraphQLView, RootView};
+use linera_views::views::RootView;
 use serde::{Deserialize, Serialize};
 
-#[derive(RootView, GraphQLView)]
+#[derive(RootView)]
 #[view(context = "ViewStorageContext")]
 pub struct TypeArenaState {
     pub rooms: MapView<String, Room>,
@@ -14,6 +14,7 @@ pub struct TypeArenaState {
 pub struct Room {
     pub id: String,
     pub host: String,
+    pub text: String,
     pub start_time: Option<u64>,
     pub end_time: Option<u64>,
     pub players: Vec<PlayerResult>,

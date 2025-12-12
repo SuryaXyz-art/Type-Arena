@@ -1,38 +1,36 @@
-export interface Player {
-    id: string;
-    username: string;
-    wpm: number;
-    progress: number;
-    finished: boolean;
+export interface Room {
+  id: string;
+  hostId: string;
+  players: Player[];
+  text: string;
 }
 
-export interface Room {
-    id: string;
-    hostId: string;
-    players: Player[];
-    text: string;
-    isStarted: boolean;
-    startTime: number | null;
+export interface Player {
+  id: string;
+  username: string;
+  progress: number;
+  wpm: number;
+  finished: boolean;
 }
 
 export interface Tournament {
-    id: string;
-    hostId: string;
-    players: string[]; // ids
-    playerNames: Record<string, string>;
-    maxPlayers: number;
-    status: 'waiting' | 'started' | 'finished';
-    bracket: Match[][];
-}
-
-export interface Match {
-    player1: string | null;
-    player2: string | null;
-    winner: string | null;
-    roomId: string | null;
+  id: string;
+  hostId: string;
+  players: string[];
+  playerNames: { [key: string]: string };
+  bracket: any[];
+  status: 'waiting' | 'racing' | 'finished';
+  maxPlayers: number;
 }
 
 export interface LeaderboardEntry {
-    username: string;
-    wpm: number;
+  username: string;
+  wpm: number;
+}
+
+export interface Config {
+  chainId: string;
+  tokenAppId: string;
+  marketAppId: string;
+  oracleAppId: string;
 }

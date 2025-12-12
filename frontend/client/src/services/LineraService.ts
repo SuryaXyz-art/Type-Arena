@@ -1,80 +1,65 @@
-import { GraphQLClient, gql } from 'graphql-request';
 
-const NODE_URL = "http://localhost:8080";
-const CHAIN_ID = "e476187f6ddfeb9d588c7b45d3df334d5501d6499b3f9ad5595cae86cce16a65"; // Replace with actual Chain ID
-const APPLICATION_ID = "e476187f6ddfeb9d588c7b45d3df334d5501d6499b3f9ad5595cae86cce16a65"; // Replace with actual Application ID
+import { Client } from '@linera/client';
 
 export class LineraService {
-    private client: GraphQLClient;
+    private client: Client | null = null;
+    private tokenAppId: string | null = null;
+    private marketAppId: string | null = null;
+    private oracleAppId: string | null = null;
 
-    constructor() {
-        // In Linera, the endpoint is typically /chains/<chain_id>/applications/<app_id>
-        this.client = new GraphQLClient(`${NODE_URL}/chains/${CHAIN_ID}/applications/${APPLICATION_ID}`);
+    setClient(client: Client) {
+        this.client = client;
+    }
+
+    setAppIds(tokenAppId: string, marketAppId: string, oracleAppId: string) {
+        this.tokenAppId = tokenAppId;
+        this.marketAppId = marketAppId;
+        this.oracleAppId = oracleAppId;
+    }
+
+    private async getApplication(appId: string | null) {
+        if (!this.client) {
+            throw new Error("Linera client not initialized");
+        }
+        if (!appId) {
+            throw new Error("Application ID not set");
+        }
+        return await this.client.application(appId);
     }
 
     async submitScore(roomId: string, wpm: number, timeMs: number) {
         console.log(`[Linera] Submitting score for room ${roomId}: ${wpm} WPM`);
-
-        const mutation = gql`
-            mutation SubmitResult($roomId: String!, $wpm: Int!, $timeMs: Int!) {
-                submitResult(roomId: $roomId, wpm: $wpm, timeMs: $timeMs)
-            }
-        `;
-
-        try {
-            await this.client.request(mutation, { roomId, wpm, timeMs });
-        } catch (error) {
-            console.error("Failed to submit score to Linera:", error);
-            throw error;
-        }
+        const application = await this.getApplication(this.marketAppId);
+        const query = `mutation { submitResult(roomId: "${roomId}", wpm: ${wpm}, timeMs: ${timeMs}) }`;
+        await application.query(query);
     }
 
-    async createRoom(roomId: string) {
-        console.log(`[Linera] Creating room ${roomId}`);
-        const mutation = gql`
-            mutation CreateRoom($roomId: String!) {
-                createRoom(roomId: $roomId)
-            }
-        `;
-        try {
-            await this.client.request(mutation, { roomId });
-        } catch (error) {
-            console.error("Failed to create room on Linera:", error);
-            throw error;
-        }
+    async createRoom(roomId: string, text: string) {
+        console.log(`[Linera] Creating room ${roomId} with text length ${text.length}`);
+        const application = await this.getApplication(this.marketAppId);
+        const query = `mutation { createRoom(roomId: "${roomId}", text: "${text}") }`;
+        await application.query(query);
     }
 
     async finishRoom(roomId: string) {
         console.log(`[Linera] Finishing room ${roomId}`);
-        const mutation = gql`
-            mutation FinishRoom($roomId: String!) {
-                finishRoom(roomId: $roomId)
-            }
-        `;
-        try {
-            await this.client.request(mutation, { roomId });
-        } catch (error) {
-            console.error("Failed to finish room on Linera:", error);
-            throw error;
-        }
+        const application = await this.getApplication(this.marketAppId);
+        const query = `mutation { finishRoom(roomId: "${roomId}") }`;
+        await application.query(query);
     }
 
     async getRoom(roomId: string) {
-        const query = gql`
-            query GetRoom($roomId: String!) {
-                rooms(key: $roomId) {
-                    id
-                    host
-                    players {
-                        address
-                        wpm
-                        finishTimeMs
-                    }
-                    isFinished
-                }
-            }
-         `;
-        return await this.client.request(query, { roomId });
+        const application = await this.getApplication(this.marketAppId);
+        const query = `{ room(roomId: "${roomId}") { id host players { address wpm finishTimeMs } isFinished } }`;
+        const response = await application.query(query);
+        return JSON.parse(response).data;
+    }
+
+    async getPlayerStats(address: string) {
+        const application = await this.getApplication(this.marketAppId);
+        const query = `{ playerStats(address: "${address}") { wins totalRaces bestWpm } }`;
+        const response = await application.query(query);
+        return JSON.parse(response).data;
     }
 }
 

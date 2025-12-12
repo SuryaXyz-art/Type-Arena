@@ -16,7 +16,7 @@ linera_sdk::contract!(TypeArena);
 
 #[derive(Debug, Deserialize, Serialize)]
 pub enum Operation {
-    CreateRoom { room_id: String },
+    CreateRoom { room_id: String, text: String },
     SubmitResult { room_id: String, wpm: u32, time_ms: u64 },
     FinishRoom { room_id: String },
 }
@@ -57,13 +57,14 @@ impl Contract for TypeArena {
         operation: Self::Operation,
     ) -> Result<ExecutionResult<Self::Message>, Self::Error> {
         match operation {
-            Operation::CreateRoom { room_id } => {
+            Operation::CreateRoom { room_id, text } => {
                 if self.state.rooms.contains_key(&room_id).await? {
                     return Err(Error::RoomExists);
                 }
                 let room = Room {
                     id: room_id.clone(),
                     host: context.authenticated_signer.unwrap().to_string(),
+                    text,
                     start_time: Some(context.chain_id.to_string().parse().unwrap_or(0)), // Mock timestamp
                     end_time: None,
                     players: vec![],
@@ -165,7 +166,7 @@ mod tests {
 
         // 1. Create Room
         let room_id = "ROOM_123".to_string();
-        let op = Operation::CreateRoom { room_id: room_id.clone() };
+        let op = Operation::CreateRoom { room_id: room_id.clone(), text: "Hello world".to_string() };
         let result = contract.execute_operation(&op_context, op).await;
         assert!(result.is_ok());
 
@@ -173,6 +174,7 @@ mod tests {
         let room = contract.state.rooms.get(&room_id).await.unwrap();
         assert!(room.is_some());
         assert_eq!(room.unwrap().host, owner.to_string());
+        assert_eq!(contract.state.rooms.get(&room_id).await.unwrap().unwrap().text, "Hello world");
 
         // 2. Submit Result
         let op_submit = Operation::SubmitResult {
@@ -234,12 +236,12 @@ mod tests {
         assert!(matches!(result_submit_fail, Err(Error::RoomNotFound)));
 
         // 2. Create Room
-        let op_create = Operation::CreateRoom { room_id: room_id.clone() };
+        let op_create = Operation::CreateRoom { room_id: room_id.clone(), text: "Test".to_string() };
         let result_create = contract.execute_operation(&op_context, op_create).await;
         assert!(result_create.is_ok());
 
         // 3. Create Duplicate Room
-        let op_create_dup = Operation::CreateRoom { room_id: room_id.clone() };
+        let op_create_dup = Operation::CreateRoom { room_id: room_id.clone(), text: "Test".to_string() };
         let result_create_dup = contract.execute_operation(&op_context, op_create_dup).await;
         assert!(matches!(result_create_dup, Err(Error::RoomExists)));
 

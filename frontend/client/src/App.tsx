@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 import io from 'socket.io-client';
 import { TypingArea } from './components/TypingArea';
 import { lineraService } from './services/LineraService';
-import type { Room, Tournament, LeaderboardEntry } from './types';
+import { walletService } from './services/WalletService';
+import type { Room, Tournament, LeaderboardEntry, Config } from './types';
+import type { Client } from '@linera/client';
 
 const socket = io('http://localhost:3001');
 
@@ -18,13 +20,29 @@ function App() {
   const [countdown, setCountdown] = useState<number | null>(null);
   const [startTime, setStartTime] = useState<number>(0);
   const [useWeb3, setUseWeb3] = useState(false);
+  const [lineraClient, setLineraClient] = useState<Client | null>(null);
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [config, setConfig] = useState<Config | null>(null);
+
+  useEffect(() => {
+    fetch('/config.json')
+      .then((response) => response.json())
+      .then((data) => setConfig(data));
+  }, []);
+
+  useEffect(() => {
+    if (useWeb3 && lineraClient && config) {
+      lineraService.setClient(lineraClient);
+      lineraService.setAppIds(config.tokenAppId, config.marketAppId, config.oracleAppId);
+    }
+  }, [useWeb3, lineraClient, config]);
 
   useEffect(() => {
     socket.on('room_created', (room: Room) => {
       setRoom(room);
       setGameState('lobby');
       if (useWeb3) {
-        lineraService.createRoom(room.id).catch(console.error);
+        lineraService.createRoom(room.id, room.text).catch(console.error);
       }
     });
 
@@ -93,6 +111,22 @@ function App() {
       setTournament(t);
     });
 
+    socket.on('tournament_starting', ({ countdown }: { countdown: number }) => {
+      let count = countdown / 1000;
+      setCountdown(count);
+      // We reuse the 'countdown' state but stay in tournament_lobby for overlay
+      // Or we can add a new state 'tournament_countdown' if needed.
+      // For simplicity, let's just use the countdown variable and show it in the lobby.
+      const interval = setInterval(() => {
+        count--;
+        setCountdown(count);
+        if (count <= 0) {
+          clearInterval(interval);
+          setCountdown(null);
+        }
+      }, 1000);
+    });
+
     // Leaderboard
     socket.on('leaderboard_update', (scores: LeaderboardEntry[]) => {
       setLeaderboard(scores);
@@ -109,6 +143,7 @@ function App() {
       socket.off('tournament_created');
       socket.off('tournament_joined');
       socket.off('tournament_updated');
+      socket.off('tournament_starting');
       socket.off('leaderboard_update');
     };
   }, [useWeb3, startTime]);
@@ -143,6 +178,23 @@ function App() {
     }
   };
 
+  const handleConnectWallet = async () => {
+    if (!config) {
+      return alert('Config not loaded yet');
+    }
+    try {
+      const signer = await walletService.connect();
+      const address = await signer.address();
+      setWalletAddress(address);
+      const faucetUrl = import.meta.env.VITE_GRAPHQL_ENDPOINT || "http://localhost:8080";
+      const client = await walletService.createClient(faucetUrl, config.chainId);
+      setLineraClient(client);
+    } catch (error) {
+      console.error(error);
+      alert('Failed to connect to wallet');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-900 text-white font-sans selection:bg-purple-500 selection:text-white">
       <header className="p-4 border-b border-gray-800 flex justify-between items-center bg-gray-900/50 backdrop-blur-md sticky top-0 z-10">
@@ -150,15 +202,25 @@ function App() {
           TYPE<span className="text-white not-italic">ARENA</span>
         </h1>
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 mr-4">
-            <span className={`text-xs font-bold ${useWeb3 ? 'text-green-400' : 'text-gray-500'}`}>WEB3 MODE</span>
+          {walletAddress ? (
+            <div className="flex items-center gap-2 mr-4">
+              <span className={`text-xs font-bold ${useWeb3 ? 'text-green-400' : 'text-gray-500'}`}>WEB3 MODE</span>
+              <button
+                onClick={() => setUseWeb3(!useWeb3)}
+                className={`w-12 h-6 rounded-full p-1 transition-colors ${useWeb3 ? 'bg-green-600' : 'bg-gray-700'}`}
+              >
+                <div className={`w-4 h-4 bg-white rounded-full transition-transform ${useWeb3 ? 'translate-x-6' : 'translate-x-0'}`} />
+              </button>
+            </div>
+          ) : (
             <button
-              onClick={() => setUseWeb3(!useWeb3)}
-              className={`w-12 h-6 rounded-full p-1 transition-colors ${useWeb3 ? 'bg-green-600' : 'bg-gray-700'}`}
+              onClick={handleConnectWallet}
+              disabled={!config}
+              className="px-4 py-2 bg-purple-600 hover:bg-purple-500 rounded-lg font-bold transition-all hover:scale-105 disabled:bg-gray-500"
             >
-              <div className={`w-4 h-4 bg-white rounded-full transition-transform ${useWeb3 ? 'translate-x-6' : 'translate-x-0'}`} />
+              {config ? 'Connect Wallet' : 'Loading...'}
             </button>
-          </div>
+          )}
           {room && <span className="font-mono bg-gray-800 px-3 py-1 rounded">Room: {room.id}</span>}
           <div className={`w-3 h-3 rounded-full ${socket.connected ? 'bg-green-500' : 'bg-red-500'} shadow-[0_0_10px_rgba(34,197,94,0.5)]`} />
         </div>
@@ -252,7 +314,14 @@ function App() {
         )}
 
         {gameState === 'tournament_lobby' && tournament && (
-          <div className="max-w-4xl mx-auto text-center animate-fade-in-up">
+          <div className="max-w-4xl mx-auto text-center animate-fade-in-up relative">
+            {countdown !== null && countdown > 0 && (
+              <div className="absolute inset-0 flex items-center justify-center z-50 bg-gray-900/80 backdrop-blur rounded-xl">
+                <div className="text-9xl font-black text-transparent bg-clip-text bg-gradient-to-br from-yellow-400 to-red-600 animate-pulse drop-shadow-[0_0_20px_rgba(255,0,0,0.5)]">
+                  {countdown}
+                </div>
+              </div>
+            )}
             <h2 className="text-3xl font-bold mb-4">Tournament Lobby</h2>
             <p className="mb-4">ID: <span className="font-mono bg-gray-800 px-2 rounded select-all">{tournament.id}</span></p>
 

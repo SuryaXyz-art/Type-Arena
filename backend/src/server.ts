@@ -123,7 +123,7 @@ io.on('connection', (socket) => {
 
     // --- Tournament Events ---
     socket.on('create_tournament', ({ username }: { username: string }) => {
-        const tournament = tournamentManager.createTournament(socket.id, 4);
+        const tournament = tournamentManager.createTournament(socket.id, 25);
         socket.join(tournament.id);
         socket.emit('tournament_created', tournament);
         console.log(`Tournament ${tournament.id} created by ${username}`);
@@ -141,11 +141,15 @@ io.on('connection', (socket) => {
     });
 
     socket.on('start_tournament', ({ tournamentId }: { tournamentId: string }) => {
-        const t = tournamentManager.startTournament(tournamentId);
-        if (t) {
-            checkForReadyMatches(t.id);
-            io.to(t.id).emit('tournament_updated', t);
-        }
+        io.to(tournamentId).emit('tournament_starting', { countdown: 5000 }); // 5s countdown
+
+        setTimeout(() => {
+            const t = tournamentManager.startTournament(tournamentId);
+            if (t) {
+                checkForReadyMatches(t.id);
+                io.to(t.id).emit('tournament_updated', t);
+            }
+        }, 5000);
     });
 
     const checkForReadyMatches = (tournamentId: string) => {

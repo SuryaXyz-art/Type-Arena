@@ -1,0 +1,15 @@
+{
+    "include": ["src/**/*.ts"],
+    "compilerOptions": {
+        "target": "es6",
+        "moduleResolution": "nodenext",
+        "module": "NodeNext",
+        "outDir": "dist/",
+        "rootDir": "src",
+        "declaration": true,
+        "paths": {
+            "@linera-web": ["./dist/linera.js"],
+            "web-thread:wasm-shim": ["./dist/linera.js"]
+        }
+    }
+}
