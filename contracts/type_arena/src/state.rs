@@ -1,13 +1,86 @@
-use linera_sdk::views::{MapView, RegisterView, ViewStorageContext};
-use linera_views::views::RootView;
+use linera_sdk::views::{MapView, RootView, ViewStorageContext};
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
+
+#[derive(Debug, Error)]
+pub enum StateError {
+    #[error("Room already exists")]
+    RoomExists,
+    #[error("Room not found")]
+    RoomNotFound,
+    #[error("Room already finished")]
+    RoomFinished,
+    #[error(transparent)]
+    ViewError(#[from] linera_sdk::views::ViewError),
+}
 
 #[derive(RootView)]
-#[view(context = "ViewStorageContext")]
 pub struct TypeArenaState {
     pub rooms: MapView<String, Room>,
     pub tournaments: MapView<String, Tournament>,
     pub player_stats: MapView<String, PlayerStats>,
+}
+
+impl TypeArenaState {
+    pub async fn create_room(
+        &mut self,
+        room_id: String,
+        host: String,
+        text: String,
+        start_time: u64,
+    ) -> Result<(), StateError> {
+        if self.rooms.contains_key(&room_id).await? {
+            return Err(StateError::RoomExists);
+        }
+        let room = Room {
+            id: room_id.clone(),
+            host,
+            text,
+            start_time: Some(start_time),
+            end_time: None,
+            players: vec![],
+            is_finished: false,
+        };
+        self.rooms.insert(&room_id, room)?;
+        Ok(())
+    }
+
+    pub async fn submit_result(
+        &mut self,
+        room_id: String,
+        player: String,
+        wpm: u32,
+        time_ms: u64,
+    ) -> Result<(), StateError> {
+        let mut room = self.rooms.get(&room_id).await?.ok_or(StateError::RoomNotFound)?;
+        if room.is_finished {
+             return Err(StateError::RoomFinished);
+        }
+        
+        if !room.players.iter().any(|p| p.address == player) {
+             room.players.push(PlayerResult {
+                 address: player.clone(),
+                 wpm,
+                 finish_time_ms: time_ms,
+             });
+             self.rooms.insert(&room_id, room)?;
+
+             let mut stats = self.player_stats.get(&player).await?.unwrap_or_default();
+             stats.total_races += 1;
+             if wpm > stats.best_wpm {
+                 stats.best_wpm = wpm;
+             }
+             self.player_stats.insert(&player, stats)?;
+        }
+        Ok(())
+    }
+
+    pub async fn finish_room(&mut self, room_id: String) -> Result<(), StateError> {
+        let mut room = self.rooms.get(&room_id).await?.ok_or(StateError::RoomNotFound)?;
+        room.is_finished = true;
+        self.rooms.insert(&room_id, room)?;
+        Ok(())
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Default, async_graphql::SimpleObject)]

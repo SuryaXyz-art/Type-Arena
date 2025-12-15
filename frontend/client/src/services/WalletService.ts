@@ -6,7 +6,7 @@ class WalletService {
   private signer: Signer | null = null;
 
   async connect() {
-    await Client.initialize();
+    // Client.initialize();
     this.signer = new Signer();
 
     // The rest of the client setup will be done in the component
@@ -14,7 +14,7 @@ class WalletService {
     return this.signer;
   }
 
-  async createClient(faucetUrl: string, chainId: string) {
+  async createClient(faucetUrl: string, _chainId: string) {
     if (!this.signer) {
       throw new Error('Signer not initialized. Call connect() first.');
     }
@@ -24,7 +24,7 @@ class WalletService {
     const owner = await this.signer.address();
     await faucet.claimChain(wallet, owner);
 
-    this.client = new Client(wallet, this.signer);
+    this.client = new Client(wallet, this.signer, false);
     return this.client;
   }
 }

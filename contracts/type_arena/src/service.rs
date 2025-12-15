@@ -1,25 +1,21 @@
 #![cfg_attr(target_arch = "wasm32", no_main)]
 
-mod state;
-
-use self::state::TypeArenaState;
-use self::state::{Room, PlayerStats};
+use crate::state::TypeArenaState;
+use crate::state::{Room, PlayerStats};
 use async_graphql::{Request, Response, Schema, Object, EmptyMutation, EmptySubscription};
-use async_trait::async_trait;
-use linera_sdk::{
-    base::WithServiceAbi, Service, ServiceStateStorage, QueryContext,
-};
+use linera_sdk::{Service, ServiceRuntime, views::View};
 use std::sync::Arc;
-use thiserror::Error;
+use crate::TypeArenaAbi;
 
 linera_sdk::service!(TypeArena);
 
-#[derive(Debug, Error)]
-pub enum Error {
-    #[error(transparent)]
-    ViewError(#[from] linera_views::views::ViewError),
-    #[error(transparent)]
-    GraphQL(#[from] async_graphql::Error),
+pub struct TypeArena {
+    state: Arc<TypeArenaState>,
+    runtime: ServiceRuntime<Self>,
+}
+
+impl linera_sdk::abi::WithServiceAbi for TypeArena {
+    type Abi = TypeArenaAbi;
 }
 
 struct QueryRoot {
@@ -28,25 +24,26 @@ struct QueryRoot {
 
 #[Object]
 impl QueryRoot {
-    async fn rooms(&self, key: String) -> Result<Option<Room>, Error> {
-        Ok(self.state.rooms.get(&key).await?)
+    async fn rooms(&self, key: String) -> Option<Room> {
+        self.state.rooms.get(&key).await.ok().flatten()
     }
 
-    async fn player_stats(&self, key: String) -> Result<Option<PlayerStats>, Error> {
-        Ok(self.state.player_stats.get(&key).await?)
+    async fn player_stats(&self, key: String) -> Option<PlayerStats> {
+        self.state.player_stats.get(&key).await.ok().flatten()
     }
 }
 
-#[async_trait]
 impl Service for TypeArena {
-    type Error = Error;
-    type Storage = ServiceStateStorage<Self>;
+    type Parameters = ();
+    
+    async fn new(runtime: ServiceRuntime<Self>) -> Self {
+        let state = TypeArenaState::load(runtime.root_view_storage_context())
+            .await
+            .expect("Failed to load state");
+        TypeArena { state: Arc::new(state), runtime }
+    }
 
-    async fn query_application(
-        &self,
-        _context: &QueryContext,
-        argument: Request,
-    ) -> Result<Response, Self::Error> {
+    async fn handle_query(&self, query: Self::Query) -> Self::QueryResponse {
         let schema = Schema::build(
             QueryRoot { state: self.state.clone() },
             EmptyMutation,
@@ -54,7 +51,6 @@ impl Service for TypeArena {
         )
         .finish();
         
-        let response = schema.execute(argument).await;
-        Ok(response)
+        schema.execute(query).await
     }
 }

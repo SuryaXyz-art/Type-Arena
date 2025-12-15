@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import io from 'socket.io-client';
 import { TypingArea } from './components/TypingArea';
 import { lineraService } from './services/LineraService';
@@ -186,7 +186,7 @@ function App() {
       const signer = await walletService.connect();
       const address = await signer.address();
       setWalletAddress(address);
-      const faucetUrl = import.meta.env.VITE_GRAPHQL_ENDPOINT || "http://localhost:8080";
+      const faucetUrl = import.meta.env.VITE_GRAPHQL_ENDPOINT || "https://faucet.testnet-conway.linera.net";
       const client = await walletService.createClient(faucetUrl, config.chainId);
       setLineraClient(client);
     } catch (error) {
@@ -282,7 +282,7 @@ function App() {
             {/* Leaderboard Panel */}
             <div className="bg-gray-800 p-6 rounded-2xl shadow-2xl border border-gray-700 w-full max-w-sm h-full max-h-[500px] overflow-hidden flex flex-col">
               <h3 className="text-xl font-bold mb-4 text-yellow-400 flex items-center gap-2">
-                <span>🏆</span> Global Leaderboard
+                <span>ðŸ†</span> Global Leaderboard
               </h3>
               <div className="overflow-y-auto flex-1 pr-2">
                 <table className="w-full text-left">
@@ -462,7 +462,7 @@ function App() {
                 .map((p: any, i: number) => (
                   <div key={p.id} className="grid grid-cols-4 p-4 border-b border-gray-700 items-center hover:bg-gray-700/50">
                     <div className="col-span-1 text-2xl font-black text-gray-500 font-mono">
-                      {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
+                      {i === 0 ? 'ðŸ¥‡' : i === 1 ? 'ðŸ¥ˆ' : i === 2 ? 'ðŸ¥‰' : `#${i + 1}`}
                     </div>
                     <div className="col-span-2 text-left font-bold text-lg flex items-center gap-2">
                       {p.username}
@@ -486,3 +486,4 @@ function App() {
 }
 
 export default App;
+

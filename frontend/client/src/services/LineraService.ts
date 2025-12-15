@@ -3,18 +3,18 @@ import { Client } from '@linera/client';
 
 export class LineraService {
     private client: Client | null = null;
-    private tokenAppId: string | null = null;
+    // private tokenAppId: string | null = null;
     private marketAppId: string | null = null;
-    private oracleAppId: string | null = null;
+    // private oracleAppId: string | null = null;
 
     setClient(client: Client) {
         this.client = client;
     }
 
-    setAppIds(tokenAppId: string, marketAppId: string, oracleAppId: string) {
-        this.tokenAppId = tokenAppId;
+    setAppIds(_tokenAppId: string, marketAppId: string, _oracleAppId: string) {
+        // this.tokenAppId = tokenAppId;
         this.marketAppId = marketAppId;
-        this.oracleAppId = oracleAppId;
+        // this.oracleAppId = oracleAppId;
     }
 
     private async getApplication(appId: string | null) {

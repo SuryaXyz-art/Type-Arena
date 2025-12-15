@@ -7,15 +7,17 @@ edition = "2021"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-linera-sdk = "0.11.3"
-linera-views = "0.11.3"
+linera-sdk = "0.15.7"
+linera-views = "0.15.7"
 serde = { version = "1.0", features = ["derive"] }
 async-graphql = "7.0.2"
 thiserror = "1.0"
+async-trait = "0.1"
+tokio = { version = "1.25", features = ["sync"] }
 
 [build-dependencies]
-linera-sdk = "0.11.3"
+linera-sdk = "0.15.7"
 
 [dev-dependencies]
 tokio = { version = "1.28", features = ["full"] }
-linera-views = "0.11.3"
+linera-views = "0.15.7"

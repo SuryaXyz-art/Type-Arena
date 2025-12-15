@@ -1,51 +1,53 @@
-#!/usr/bin/env bash
+﻿#!/usr/bin/env bash
 set -eu
 
-# Start the Linera network
+# ------------------------------------------------------------------
+# Type Arena - Local Development Runner
+# ------------------------------------------------------------------
+
+echo "Starting Local Linera Network..."
+# Start the Linera network in the background
 linera net up &
+NET_PID=$!
+
+# Ensure we kill the network when this script exits
+trap "kill $NET_PID" EXIT
 
 # Wait for the network to be ready
 sleep 5
 
-# Create a new wallet and chain
+echo "Initializing Wallet..."
 linera wallet init --faucet http://localhost:8080
 CHAIN_ID=$(linera wallet show | grep "Chain ID" | awk '{print $3}')
+echo "Using Chain ID: $CHAIN_ID"
 
-# Build the Linera applications
+echo "Building Rust Contracts..."
+# Ensure target exists
+rustup target add wasm32-unknown-unknown
+cd contracts/type_arena
 cargo build --release --target wasm32-unknown-unknown
+cd ../..
 
-# Publish and create the token application
-TOKEN_APP_ID=$(linera project publish-and-create token)
+echo "Publishing Bytecode..."
+WASM_PATH="contracts/type_arena/target/wasm32-unknown-unknown/release/type_arena.wasm"
+BYTECODE_ID=$(linera publish-bytecode "$WASM_PATH" "$WASM_PATH" | grep "Bytecode ID:" | awk '{print $3}')
+echo "Bytecode ID: $BYTECODE_ID"
 
-# Publish and create the market application
-MARKET_APP_ID=$(linera project publish-and-create market --required-application-ids $TOKEN_APP_ID)
+echo "Creating Application..."
+APP_ID=$(linera create-application "$BYTECODE_ID" --json-argument "{}" | grep "Application ID:" | awk '{print $3}')
+echo "Application ID: $APP_ID"
 
-# Publish and create the oracle application
-ORACLE_APP_ID=$(linera project publish-and-create oracle --required-application-ids $MARKET_APP_ID)
+# Update Frontend Environment
+echo "VITE_TOKEN_APP_ID=$APP_ID" > frontend/client/.env
+echo "VITE_CHAIN_ID=$CHAIN_ID" >> frontend/client/.env
 
-# Build the frontend
+echo "Building Frontend..."
 cd frontend/client
+npm install
 npm run build
 cd ../..
 
-# Create a dist directory
-mkdir -p dist
-
-# Copy the built frontend to the dist directory
-cp -r frontend/client/dist/* dist
-
-# Generate the config.json file
-jq -n \
-  --arg chainId "$CHAIN_ID" \
-  --arg tokenAppId "$TOKEN_APP_ID" \
-  --arg marketAppId "$MARKET_APP_ID" \
-  --arg oracleAppId "$ORACLE_APP_ID" \
-  '{
-    chainId: $chainId,
-    tokenAppId: $tokenAppId,
-    marketAppId: $marketAppId,
-    oracleAppId: $oracleAppId
-  }' > dist/config.json
-
-# Start the web server
-npx http-server dist
+echo "Serving Application..."
+# We use http-server with specific headers required for SharedArrayBuffer (Linera Wasm requirement)
+# -H flags add the Cross-Origin headers.
+npx http-server frontend/client/dist -p 8081 --cors -H '{"Cross-Origin-Embedder-Policy": "require-corp", "Cross-Origin-Opener-Policy": "same-origin"}'
