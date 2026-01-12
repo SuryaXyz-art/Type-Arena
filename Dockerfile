@@ -12,7 +12,8 @@ RUN apt-get update && apt-get install -y \
     npm
 
 # Install Linera CLI
-RUN cargo install linera-service --features storage-service
+# Install Linera CLI (Optional - commented out for faster build times as we target Testnet Conway)
+# RUN cargo install linera-service --features storage-service
 
 # Set up the project directory
 WORKDIR /app

@@ -1,20 +1,36 @@
-use linera_sdk::views::{MapView, RootView, ViewStorageContext};
+use linera_sdk::views::{linera_views, MapView, RootView, ViewStorageContext};
 use serde::{Deserialize, Serialize};
-use thiserror::Error;
+use std::fmt;
 
-#[derive(Debug, Error)]
+#[derive(Debug)]
 pub enum StateError {
-    #[error("Room already exists")]
     RoomExists,
-    #[error("Room not found")]
     RoomNotFound,
-    #[error("Room already finished")]
     RoomFinished,
-    #[error(transparent)]
-    ViewError(#[from] linera_sdk::views::ViewError),
+    ViewError(linera_sdk::views::ViewError),
 }
 
-#[derive(RootView)]
+impl fmt::Display for StateError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            StateError::RoomExists => write!(f, "Room already exists"),
+            StateError::RoomNotFound => write!(f, "Room not found"),
+            StateError::RoomFinished => write!(f, "Room already finished"),
+            StateError::ViewError(e) => write!(f, "View error: {}", e),
+        }
+    }
+}
+
+impl std::error::Error for StateError {}
+
+impl From<linera_sdk::views::ViewError> for StateError {
+    fn from(error: linera_sdk::views::ViewError) -> Self {
+        StateError::ViewError(error)
+    }
+}
+
+#[derive(RootView, async_graphql::SimpleObject)]
+#[view(context = ViewStorageContext)]
 pub struct TypeArenaState {
     pub rooms: MapView<String, Room>,
     pub tournaments: MapView<String, Tournament>,
@@ -39,9 +55,22 @@ impl TypeArenaState {
             start_time: Some(start_time),
             end_time: None,
             players: vec![],
+            participants: vec![],
             is_finished: false,
         };
         self.rooms.insert(&room_id, room)?;
+        Ok(())
+    }
+
+    pub async fn join_room(&mut self, room_id: String, player: String) -> Result<(), StateError> {
+        let mut room = self.rooms.get(&room_id).await?.ok_or(StateError::RoomNotFound)?;
+        if room.is_finished {
+             return Err(StateError::RoomFinished);
+        }
+        if !room.participants.contains(&player) {
+            room.participants.push(player);
+            self.rooms.insert(&room_id, room)?;
+        }
         Ok(())
     }
 
@@ -91,6 +120,7 @@ pub struct Room {
     pub start_time: Option<u64>,
     pub end_time: Option<u64>,
     pub players: Vec<PlayerResult>,
+    pub participants: Vec<String>,
     pub is_finished: bool,
 }
 

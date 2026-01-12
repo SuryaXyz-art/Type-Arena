@@ -34,6 +34,12 @@ function App() {
     if (useWeb3 && lineraClient && config) {
       lineraService.setClient(lineraClient);
       lineraService.setAppIds(config.tokenAppId, config.marketAppId, config.oracleAppId);
+
+      // Subscribe to events
+      lineraService.subscribeToEvents((event) => {
+        console.log("Real-time Linera Event:", event);
+        // Optional: Show toast or update internal state if Linera is source of truth
+      });
     }
   }, [useWeb3, lineraClient, config]);
 
@@ -83,8 +89,8 @@ function App() {
       if (useWeb3) {
         // Submit own score
         const myPlayer = finalRoom.players.find((p) => p.id === socket.id);
-        if (myPlayer) {
-          lineraService.submitScore(finalRoom.id, myPlayer.wpm, Date.now() - startTime).catch(console.error);
+        if (myPlayer && config) {
+          lineraService.submitScore(finalRoom.id, myPlayer.wpm, Date.now() - startTime, config.chainId).catch(console.error);
         }
 
         // Host finishes the room on-chain
@@ -156,6 +162,9 @@ function App() {
   const handleJoin = () => {
     if (!username || !roomIdInput) return alert("Enter username and room ID");
     socket.emit('join_room', { roomId: roomIdInput, username });
+    if (useWeb3 && config) {
+      lineraService.joinRoom(roomIdInput, config.chainId).catch(console.error);
+    }
   };
 
   const handleCreateTournament = () => {

@@ -3,21 +3,19 @@ name = "type_arena"
 version = "0.1.0"
 edition = "2021"
 
+[dependencies]
+linera-sdk = "0.15.8"
+async-graphql = { version = "7.0.17", default-features = false }
+serde = { version = "1.0", features = ["derive"] }
+bcs = "0.1.6"
+
 [lib]
 crate-type = ["cdylib", "rlib"]
 
-[dependencies]
-linera-sdk = "0.15.7"
-linera-views = "0.15.7"
-serde = { version = "1.0", features = ["derive"] }
-async-graphql = "7.0.2"
-thiserror = "1.0"
-async-trait = "0.1"
-tokio = { version = "1.25", features = ["sync"] }
+[[bin]]
+name = "type_arena_contract"
+path = "src/contract.rs"
 
-[build-dependencies]
-linera-sdk = "0.15.7"
-
-[dev-dependencies]
-tokio = { version = "1.28", features = ["full"] }
-linera-views = "0.15.7"
+[[bin]]
+name = "type_arena_service"
+path = "src/service.rs"

@@ -1,0 +1,68 @@
+﻿cargo :    Compiling type_arena v0.1.0 (C:\Users\msi\Desktop\Linera PJ 1\Type Arena\type-arena\contracts\type_arena)
+At line:1 char:98
++ ...  $env:PATH; cargo build --release --target wasm32-unknown-unknown 2>& ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (   Compiling ty...cts\type_arena):String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+warning: unused imports: `Deserialize` and `Serialize`
+  --> src\contract.rs:12:13
+   |
+12 | use serde::{Deserialize, Serialize};
+   |             ^^^^^^^^^^^  ^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unreachable expression
+  --> src\contract.rs:14:1
+   |
+14 | linera_sdk::contract!(TypeArena);
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   | |
+   | unreachable expression
+   | any code following this expression is unreachable
+   |
+note: this expression has type `Message`, which is uninhabited
+  --> src\contract.rs:14:1
+   |
+14 | linera_sdk::contract!(TypeArena);
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = note: `#[warn(unreachable_code)]` (part of `#[warn(unused)]`) on by default
+   = note: this warning originates in the macro `linera_sdk::contract` (in Nightly builds, run with -Z macro-backtrace for more 
+info)
+
+warning: field `runtime` is never read
+  --> src\service.rs:15:5
+   |
+13 | pub struct TypeArena {
+   |            --------- field in this struct
+14 |     state: Arc<TypeArenaState>,
+15 |     runtime: ServiceRuntime<Self>,
+   |     ^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: enum `StateError` is never used
+ --> src\state.rs:6:10
+  |
+6 | pub enum StateError {
+  |          ^^^^^^^^^^
+
+warning: methods `create_room`, `submit_result`, and `finish_room` are never used
+  --> src\state.rs:41:18
+   |
+40 | impl TypeArenaState {
+   | ------------------- methods in this implementation
+41 |     pub async fn create_room(
+   |                  ^^^^^^^^^^^
+...
+64 |     pub async fn submit_result(
+   |                  ^^^^^^^^^^^^^
+...
+94 |     pub async fn finish_room(&mut self, room_id: String) -> Result<(), StateError> {
+   |                  ^^^^^^^^^^^
+
+warning: `type_arena` (bin "type_arena_contract") generated 2 warnings (run `cargo fix --bin "type_arena_contract"` to apply 1 
+suggestion)
+warning: `type_arena` (bin "type_arena_service") generated 3 warnings
+    Finished `release` profile [optimized] target(s) in 5.37s

@@ -1,0 +1,11 @@
+# Use w64devkit GNU toolchain for building
+[target.x86_64-pc-windows-gnu]
+linker = "C:\\Users\\msi\\Desktop\\Linera PJ 1\\Type Arena\\type-arena\\w64devkit\\bin\\gcc.exe"
+ar = "C:\\Users\\msi\\Desktop\\Linera PJ 1\\Type Arena\\type-arena\\w64devkit\\bin\\ar.exe"
+
+[target.x86_64-pc-windows-msvc]
+linker = "C:\\Users\\msi\\Desktop\\Linera PJ 1\\Type Arena\\type-arena\\w64devkit\\bin\\gcc.exe"
+ar = "C:\\Users\\msi\\Desktop\\Linera PJ 1\\Type Arena\\type-arena\\w64devkit\\bin\\ar.exe"
+
+[env]
+CC = "C:\\Users\\msi\\Desktop\\Linera PJ 1\\Type Arena\\type-arena\\w64devkit\\bin\\gcc.exe"

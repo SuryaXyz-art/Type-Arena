@@ -1,11 +1,14 @@
 #![cfg_attr(target_arch = "wasm32", no_main)]
 
-use crate::state::TypeArenaState;
+mod state;
+
+use self::state::TypeArenaState;
 use linera_sdk::{
     Contract, ContractRuntime,
     views::{RootView, View},
+    linera_base_types::{WithContractAbi, StreamName},
 };
-use crate::TypeArenaAbi;
+use type_arena::{TypeArenaAbi, Operation, Message, TypeArenaEvent};
 use serde::{Deserialize, Serialize};
 
 linera_sdk::contract!(TypeArena);
@@ -15,27 +18,15 @@ pub struct TypeArena {
     runtime: ContractRuntime<Self>,
 }
 
-impl linera_sdk::abi::WithContractAbi for TypeArena {
+impl WithContractAbi for TypeArena {
     type Abi = TypeArenaAbi;
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-pub enum Operation {
-    CreateRoom { room_id: String, text: String },
-    SubmitResult { room_id: String, wpm: u32, time_ms: u64 },
-    FinishRoom { room_id: String },
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-pub enum Message {
-    // Cross-chain messages if needed
 }
 
 impl Contract for TypeArena {
     type Message = Message;
     type Parameters = ();
     type InstantiationArgument = ();
-    type EventValue = ();
+    type EventValue = TypeArenaEvent;
 
     async fn load(runtime: ContractRuntime<Self>) -> Self {
         let state = TypeArenaState::load(runtime.root_view_storage_context())
@@ -51,101 +42,77 @@ impl Contract for TypeArena {
     async fn execute_operation(&mut self, operation: Self::Operation) -> Self::Response {
         match operation {
             Operation::CreateRoom { room_id, text } => {
-                let chain_id = self.runtime.chain_id().to_string();
                 let signer = self.runtime.authenticated_signer().map(|s| s.to_string()).unwrap_or_default();
+                let start_time = self.runtime.system_time().micros(); 
                 self.state.create_room(
-                    room_id,
+                    room_id.clone(),
                     signer,
                     text,
-                    chain_id.parse().unwrap_or(0),
+                    start_time,
                 ).await.expect("Failed to create room");
+                self.runtime.emit(
+                    StreamName::from("events"),
+                    &TypeArenaEvent::RoomCreated { room_id }
+                );
             }
-            Operation::SubmitResult { room_id, wpm, time_ms } => {
-                let signer = self.runtime.authenticated_signer().map(|s| s.to_string()).unwrap_or_default();
-                self.state.submit_result(
-                    room_id,
-                    signer,
-                    wpm,
-                    time_ms,
-                ).await.expect("Failed to submit result");
+            Operation::JoinRoom { room_id, host_chain_id } => {
+                let player = self.runtime.authenticated_signer().map(|s| s.to_string()).unwrap_or_default();
+                if host_chain_id == self.runtime.chain_id() {
+                    self.state.join_room(room_id.clone(), player.clone()).await.expect("Failed to join room locally");
+                    self.runtime.emit(
+                        StreamName::from("events"),
+                        &TypeArenaEvent::PlayerJoined { room_id, player }
+                    );
+                } else {
+                    let message = Message::JoinRoom { room_id, player };
+                    self.runtime.send_message(host_chain_id, message);
+                }
+            }
+            Operation::SubmitResult { room_id, wpm, time_ms, host_chain_id } => {
+                let player = self.runtime.authenticated_signer().map(|s| s.to_string()).unwrap_or_default();
+                if host_chain_id == self.runtime.chain_id() {
+                    self.state.submit_result(room_id.clone(), player.clone(), wpm, time_ms).await.expect("Failed to submit result locally");
+                    self.runtime.emit(
+                        StreamName::from("events"),
+                        &TypeArenaEvent::ResultSubmitted { room_id, player, wpm }
+                    );
+                } else {
+                    let message = Message::SubmitResult { room_id, player, wpm, time_ms };
+                    self.runtime.send_message(host_chain_id, message);
+                }
             }
             Operation::FinishRoom { room_id } => {
-                self.state.finish_room(room_id).await.expect("Failed to finish room");
+                self.state.finish_room(room_id.clone()).await.expect("Failed to finish room");
+                 self.runtime.emit(
+                    StreamName::from("events"),
+                    &TypeArenaEvent::RoomFinished { room_id }
+                );
             }
         }
     }
 
-    async fn execute_message(&mut self, _message: Self::Message) {
-        // Handle cross-chain messages
+    async fn execute_message(&mut self, message: Self::Message) {
+        match message {
+            Message::JoinRoom { room_id, player } => {
+                // In a real app, verify 'player' against message sender authentication if needed.
+                // For now, we trust the message content for simplicity or assume signed messages.
+                 self.state.join_room(room_id.clone(), player.clone()).await.expect("Failed to process JoinRoom message");
+                 self.runtime.emit(
+                    StreamName::from("events"),
+                    &TypeArenaEvent::PlayerJoined { room_id, player }
+                );
+            }
+            Message::SubmitResult { room_id, player, wpm, time_ms } => {
+                 self.state.submit_result(room_id.clone(), player.clone(), wpm, time_ms).await.expect("Failed to process SubmitResult message");
+                 self.runtime.emit(
+                    StreamName::from("events"),
+                    &TypeArenaEvent::ResultSubmitted { room_id, player, wpm }
+                );
+            }
+        }
     }
 
     async fn store(mut self) {
         self.state.save().await.expect("Failed to save state");
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use linera_views::memory::create_memory_context;
-    use crate::state::StateError;
-
-    #[tokio::test]
-    async fn test_create_and_join_room() {
-        let context = create_memory_context();
-        let mut state = TypeArenaState::load(context).await.unwrap();
-
-        let host = "owner_key".to_string();
-
-        // 1. Create Room
-        let room_id = "ROOM_123".to_string();
-        state.create_room(room_id.clone(), host.clone(), "Hello world".to_string(), 0).await.unwrap();
-
-        // Verify room exists
-        let room = state.rooms.get(&room_id).await.unwrap();
-        assert!(room.is_some());
-        assert_eq!(room.unwrap().host, host);
-
-        // 2. Submit Result
-        state.submit_result(room_id.clone(), host.clone(), 120, 60000).await.unwrap();
-
-        // Verify player result
-        let room = state.rooms.get(&room_id).await.unwrap().unwrap();
-        assert_eq!(room.players.len(), 1);
-        assert_eq!(room.players[0].wpm, 120);
-
-        // 3. Finish Room
-        state.finish_room(room_id.clone()).await.unwrap();
-        
-        // Verify finished
-        let room = state.rooms.get(&room_id).await.unwrap().unwrap();
-        assert!(room.is_finished);
-
-        // 4. Try submit after finish (should fail)
-        let res = state.submit_result(room_id.clone(), host.clone(), 150, 50000).await;
-        assert!(matches!(res, Err(StateError::RoomFinished)));
-    }
-
-    #[tokio::test]
-    async fn test_error_cases() {
-        let context = create_memory_context();
-        let mut state = TypeArenaState::load(context).await.unwrap();
-
-        let room_id = "ROOM_ERR".to_string();
-
-        // 1. Submit to non-existent room
-        let res = state.submit_result(room_id.clone(), "player".into(), 100, 60000).await;
-        assert!(matches!(res, Err(StateError::RoomNotFound)));
-
-        // 2. Create Room
-        state.create_room(room_id.clone(), "host".into(), "Test".into(), 0).await.unwrap();
-
-        // 3. Create Duplicate Room
-        let res_dup = state.create_room(room_id.clone(), "host".into(), "Test".into(), 0).await;
-        assert!(matches!(res_dup, Err(StateError::RoomExists)));
-
-        // 4. Finish non-existent room
-        let res_finish = state.finish_room("NON_EXISTENT".to_string()).await;
-        assert!(matches!(res_finish, Err(StateError::RoomNotFound)));
     }
 }

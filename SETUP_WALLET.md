@@ -32,16 +32,20 @@ This script will:
 4. Output the **Application ID**.
 
 ## Step 3: Configure Frontend
-1. Copy `frontend/client/.env.example` to `frontend/client/.env`.
+1. Open `frontend/client/public/config.json`.
 2. Get your Default Chain ID:
    ```bash
    linera wallet show
    ```
    Copy the `Chain Id` from the output.
-3. Open `frontend/client/.env` and update the values:
-   ```ini
-   VITE_CHAIN_ID=<Paste your Chain ID>
-   VITE_TOKEN_APP_ID=<Paste Application ID from deploy.ps1 output>
+3. Update `frontend/client/public/config.json` with the values from your deployment:
+   ```json
+   {
+       "chainId": "<Paste your Chain ID>",
+       "marketAppId": "<Paste Application ID from deploy_testnet output>",
+       "tokenAppId": "",
+       "oracleAppId": ""
+   }
    ```
 
 ## Step 4: Run the App

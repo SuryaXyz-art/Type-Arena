@@ -7,6 +7,7 @@
 *.ps1
 !deploy.ps1
 !install_linera.ps1
+!deploy_testnet.ps1
 .env
 .DS_Store
 wallet.json

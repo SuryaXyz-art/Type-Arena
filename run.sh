@@ -29,17 +29,25 @@ cargo build --release --target wasm32-unknown-unknown
 cd ../..
 
 echo "Publishing Bytecode..."
-WASM_PATH="contracts/type_arena/target/wasm32-unknown-unknown/release/type_arena.wasm"
-BYTECODE_ID=$(linera publish-bytecode "$WASM_PATH" "$WASM_PATH" | grep "Bytecode ID:" | awk '{print $3}')
+CONTRACT_WASM="contracts/type_arena/target/wasm32-unknown-unknown/release/type_arena_contract.wasm"
+SERVICE_WASM="contracts/type_arena/target/wasm32-unknown-unknown/release/type_arena_service.wasm"
+BYTECODE_ID=$(linera publish-bytecode "$CONTRACT_WASM" "$SERVICE_WASM" | grep "Bytecode ID:" | awk '{print $3}')
 echo "Bytecode ID: $BYTECODE_ID"
 
 echo "Creating Application..."
-APP_ID=$(linera create-application "$BYTECODE_ID" --json-argument "{}" | grep "Application ID:" | awk '{print $3}')
+# Using "null" for instantiation argument
+APP_ID=$(linera create-application "$BYTECODE_ID" --json-argument "null" | grep "Application ID:" | awk '{print $3}')
 echo "Application ID: $APP_ID"
 
-# Update Frontend Environment
-echo "VITE_TOKEN_APP_ID=$APP_ID" > frontend/client/.env
-echo "VITE_CHAIN_ID=$CHAIN_ID" >> frontend/client/.env
+# Update Frontend Configuration
+CONFIG_PATH="frontend/client/public/config.json"
+echo "{" > $CONFIG_PATH
+echo "  \"chainId\": \"$CHAIN_ID\"," >> $CONFIG_PATH
+echo "  \"marketAppId\": \"$APP_ID\"," >> $CONFIG_PATH
+echo "  \"tokenAppId\": \"\"," >> $CONFIG_PATH
+echo "  \"oracleAppId\": \"\"" >> $CONFIG_PATH
+echo "}" >> $CONFIG_PATH
+echo "Updated $CONFIG_PATH"
 
 echo "Building Frontend..."
 cd frontend/client

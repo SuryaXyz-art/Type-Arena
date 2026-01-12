@@ -28,13 +28,29 @@ cd contracts/type_arena
 cargo build --release --target wasm32-unknown-unknown
 cd ../..
 
-echo "Publishing Bytecode to Testnet..."
-WASM_PATH="contracts/type_arena/target/wasm32-unknown-unknown/release/type_arena.wasm"
-BYTECODE_ID=$(linera publish-bytecode "$WASM_PATH" "$WASM_PATH" | grep "Bytecode ID:" | awk '{print $3}')
-echo "Bytecode ID: $BYTECODE_ID"
+echo "Publishing Module to Testnet..."
+CONTRACT_WASM="contracts/type_arena/target/wasm32-unknown-unknown/release/type_arena_contract.wasm"
+SERVICE_WASM="contracts/type_arena/target/wasm32-unknown-unknown/release/type_arena_service.wasm"
+
+# Use 'publish-module' for compatibility with newer CLIs
+OUTPUT=$(linera publish-module "$CONTRACT_WASM" "$SERVICE_WASM")
+echo "$OUTPUT"
+
+MODULE_ID=$(echo "$OUTPUT" | grep -oE "Module ID: [a-f0-9]+" | awk '{print $3}')
+if [ -z "$MODULE_ID" ]; then
+    # Fallback to Bytecode ID if older CLI
+    MODULE_ID=$(echo "$OUTPUT" | grep -oE "Bytecode ID: [a-f0-9]+" | awk '{print $3}')
+fi
+
+if [ -z "$MODULE_ID" ]; then
+    echo "Error: Failed to parse Module ID from output."
+    exit 1
+fi
+
+echo "Module ID: $MODULE_ID"
 
 echo "Creating Application on Testnet..."
-APP_ID=$(linera create-application "$BYTECODE_ID" --json-argument "{}" | grep "Application ID:" | awk '{print $3}')
+APP_ID=$(linera create-application "$MODULE_ID" --json-argument "null" | grep "Application ID:" | awk '{print $3}')
 echo "--------------------------------------------------------"
 echo "DEPLOYMENT SUCCESSFUL!"
 echo "--------------------------------------------------------"
@@ -42,6 +58,6 @@ echo "Application ID: $APP_ID"
 echo "Chain ID:       $CHAIN_ID"
 echo "--------------------------------------------------------"
 echo "Next Steps:"
-echo "1. Update your 'frontend/client/.env' file with these values."
+echo "1. Update 'frontend/client/public/config.json' with the App ID and Chain ID."
 echo "2. Run 'cd frontend/client && npm run dev' to test locally against the testnet."
 echo "3. Or deploy your 'frontend/client/dist' folder to Vercel/Netlify."
