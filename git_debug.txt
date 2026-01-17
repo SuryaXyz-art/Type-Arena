@@ -1,0 +1,94 @@
+On branch main
+Your branch is behind 'origin/main' by 1 commit, and can be fast-forwarded.
+  (use "git pull" to update your local branch)
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   .gitignore
+	modified:   Dockerfile
+	deleted:    README_JUDGE.md
+	modified:   SETUP_WALLET.md
+	deleted:    WALLET_INTEGRATION_INSTRUCTIONS.md
+	deleted:    commit.txt
+	deleted:    commit_utf8.txt
+	modified:   contracts/type_arena/Cargo.lock
+	modified:   contracts/type_arena/Cargo.toml
+	modified:   contracts/type_arena/src/contract.rs
+	modified:   contracts/type_arena/src/lib.rs
+	modified:   contracts/type_arena/src/service.rs
+	modified:   contracts/type_arena/src/state.rs
+	deleted:    deploy.ps1
+	modified:   deploy_testnet.sh
+	modified:   frontend/client/src/App.tsx
+	modified:   frontend/client/src/services/LineraService.ts
+	deleted:    install_linera.ps1
+	deleted:    protoc.zip
+	deleted:    push.txt
+	deleted:    push_utf8.txt
+	deleted:    reference/linera-template
+	modified:   run.sh
+	deleted:    run_with_path.sh
+	deleted:    status.txt
+	deleted:    w64devkit.zip
+	deleted:    wallet-integration/@linera/client/Cargo.toml
+	deleted:    wallet-integration/@linera/client/README.md
+	deleted:    wallet-integration/@linera/client/build.bash
+	deleted:    wallet-integration/@linera/client/clippy.toml
+	deleted:    wallet-integration/@linera/client/docs/.nojekyll
+	deleted:    wallet-integration/@linera/client/docs/assets/hierarchy.js
+	deleted:    wallet-integration/@linera/client/docs/assets/highlight.css
+	deleted:    wallet-integration/@linera/client/docs/assets/icons.js
+	deleted:    wallet-integration/@linera/client/docs/assets/icons.svg
+	deleted:    wallet-integration/@linera/client/docs/assets/main.js
+	deleted:    wallet-integration/@linera/client/docs/assets/navigation.js
+	deleted:    wallet-integration/@linera/client/docs/assets/search.js
+	deleted:    wallet-integration/@linera/client/docs/assets/style.css
+	deleted:    wallet-integration/@linera/client/docs/classes/PrivateKeySigner.html
+	deleted:    wallet-integration/@linera/client/docs/hierarchy.html
+	deleted:    wallet-integration/@linera/client/docs/index.html
+	deleted:    wallet-integration/@linera/client/docs/interfaces/Signer.html
+	deleted:    wallet-integration/@linera/client/docs/media/CONTRIBUTING.md
+	deleted:    wallet-integration/@linera/client/docs/media/LICENSE
+	deleted:    wallet-integration/@linera/client/docs/modules.html
+	deleted:    wallet-integration/@linera/client/package.json
+	deleted:    wallet-integration/@linera/client/src/index.ts
+	deleted:    wallet-integration/@linera/client/src/lib.rs
+	deleted:    wallet-integration/@linera/client/src/signer/PrivateKey.ts
+	deleted:    wallet-integration/@linera/client/src/signer/Signer.d.ts
+	deleted:    wallet-integration/@linera/client/src/signer/mod.rs
+	deleted:    wallet-integration/@linera/client/tests/Client.test.ts
+	deleted:    wallet-integration/@linera/client/tests/PrivateKeySigner.test.ts
+	deleted:    wallet-integration/@linera/client/tsconfig.json
+	deleted:    wallet-integration/@linera/client/typedoc.json
+	deleted:    wallet-integration/@linera/client/vitest.config.ts
+	deleted:    wallet-integration/@linera/metamask/package.json
+	deleted:    wallet-integration/@linera/metamask/src/index.ts
+	deleted:    wallet-integration/@linera/metamask/src/signer.ts
+	deleted:    wallet-integration/@linera/metamask/tsconfig.build.json
+	deleted:    wallet-integration/@linera/metamask/tsconfig.json
+	deleted:    wallet-integration/@linera/metamask/typedoc.json
+	deleted:    wallet-integration/README.md
+	deleted:    wallet-integration/index.html
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	CLAUDE.md
+	Dockerfile.deploy
+	Dockerfile.local
+	README.md
+	contracts/type_arena/.cargo/
+	deploy_docker.sh
+	deploy_testnet.ps1
+	frontend/client/public/config.json
+	git_debug.txt
+	push_log.txt
+	repo_files.txt
+	run_docker_internal.sh
+	run_local.ps1
+	run_local_docker.ps1
+
+no changes added to commit (use "git add" and/or "git commit -a")
+origin	https://github.com/SuryaXyz-art/Type-Arena.git (fetch)
+origin	https://github.com/SuryaXyz-art/Type-Arena.git (push)
+* main

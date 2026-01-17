@@ -1,0 +1,43 @@
+# Ignore build artifacts
+target/
+**/target/
+
+# Ignore node modules
+node_modules/
+**/node_modules/
+
+# Ignore git
+.git/
+.gitignore
+
+# Ignore logs and temporary files
+*.log
+*.txt
+*.tmp
+
+# Ignore Windows-specific files
+*.bat
+*.ps1
+!deploy_conway.ps1
+
+# Ignore development tools
+w64devkit/
+protoc/
+
+# Ignore frontend build output (will be built in container)
+frontend/client/dist/
+frontend/client/.next/
+
+# Ignore dependencies
+dependencies/
+
+# Ignore backend (if not needed)
+backend/
+
+# Keep only essential files for deployment
+!contracts/
+!frontend/
+!deploy_conway.sh
+!Dockerfile*
+!docker-compose.yml
+!README.md

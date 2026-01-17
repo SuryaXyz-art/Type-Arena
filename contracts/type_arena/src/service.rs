@@ -1,11 +1,16 @@
 #![cfg_attr(target_arch = "wasm32", no_main)]
 
-use crate::state::TypeArenaState;
-use crate::state::{Room, PlayerStats};
-use async_graphql::{Request, Response, Schema, Object, EmptyMutation, EmptySubscription};
-use linera_sdk::{Service, ServiceRuntime, views::View};
+mod state;
+
+use self::state::{TypeArenaState, Room, PlayerStats};
+use async_graphql::{Schema, Object, EmptySubscription};
+use linera_sdk::{
+    Service, ServiceRuntime, 
+    views::View, 
+    linera_base_types::{WithServiceAbi, ChainId}
+};
 use std::sync::Arc;
-use crate::TypeArenaAbi;
+use type_arena::{TypeArenaAbi, Operation};
 
 linera_sdk::service!(TypeArena);
 
@@ -14,7 +19,7 @@ pub struct TypeArena {
     runtime: ServiceRuntime<Self>,
 }
 
-impl linera_sdk::abi::WithServiceAbi for TypeArena {
+impl WithServiceAbi for TypeArena {
     type Abi = TypeArenaAbi;
 }
 
@@ -28,8 +33,33 @@ impl QueryRoot {
         self.state.rooms.get(&key).await.ok().flatten()
     }
 
+    async fn room(&self, room_id: String) -> Option<Room> {
+        self.state.rooms.get(&room_id).await.ok().flatten()
+    }
+
     async fn player_stats(&self, key: String) -> Option<PlayerStats> {
         self.state.player_stats.get(&key).await.ok().flatten()
+    }
+}
+
+struct MutationRoot;
+
+#[Object]
+impl MutationRoot {
+    async fn create_room(&self, room_id: String, text: String) -> Vec<u8> {
+        bcs::to_bytes(&Operation::CreateRoom { room_id, text }).unwrap()
+    }
+
+    async fn join_room(&self, room_id: String, host_chain_id: ChainId) -> Vec<u8> {
+        bcs::to_bytes(&Operation::JoinRoom { room_id, host_chain_id }).unwrap()
+    }
+
+    async fn submit_result(&self, room_id: String, wpm: u32, time_ms: u64, host_chain_id: ChainId) -> Vec<u8> {
+        bcs::to_bytes(&Operation::SubmitResult { room_id, wpm, time_ms, host_chain_id }).unwrap()
+    }
+
+    async fn finish_room(&self, room_id: String) -> Vec<u8> {
+        bcs::to_bytes(&Operation::FinishRoom { room_id }).unwrap()
     }
 }
 
@@ -46,11 +76,11 @@ impl Service for TypeArena {
     async fn handle_query(&self, query: Self::Query) -> Self::QueryResponse {
         let schema = Schema::build(
             QueryRoot { state: self.state.clone() },
-            EmptyMutation,
+            MutationRoot,
             EmptySubscription,
         )
         .finish();
-        
+
         schema.execute(query).await
     }
 }

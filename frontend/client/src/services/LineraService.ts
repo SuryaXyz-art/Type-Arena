@@ -27,10 +27,17 @@ export class LineraService {
         return await this.client.application(appId);
     }
 
-    async submitScore(roomId: string, wpm: number, timeMs: number) {
-        console.log(`[Linera] Submitting score for room ${roomId}: ${wpm} WPM`);
+    async submitScore(roomId: string, wpm: number, timeMs: number, hostChainId: string) {
+        console.log(`[Linera] Submitting score for room ${roomId}: ${wpm} WPM on host chain ${hostChainId}`);
         const application = await this.getApplication(this.marketAppId);
-        const query = `mutation { submitResult(roomId: "${roomId}", wpm: ${wpm}, timeMs: ${timeMs}) }`;
+        const query = `mutation { submitResult(roomId: "${roomId}", wpm: ${wpm}, timeMs: ${timeMs}, hostChainId: "${hostChainId}") }`;
+        await application.query(query);
+    }
+
+    async joinRoom(roomId: string, hostChainId: string) {
+        console.log(`[Linera] Joining room ${roomId} on host chain ${hostChainId}`);
+        const application = await this.getApplication(this.marketAppId);
+        const query = `mutation { joinRoom(roomId: "${roomId}", hostChainId: "${hostChainId}") }`;
         await application.query(query);
     }
 
@@ -60,6 +67,30 @@ export class LineraService {
         const query = `{ playerStats(address: "${address}") { wins totalRaces bestWpm } }`;
         const response = await application.query(query);
         return JSON.parse(response).data;
+    }
+    async subscribeToEvents(callback: (event: any) => void) {
+        if (!this.marketAppId) return;
+        const application = await this.getApplication(this.marketAppId);
+        // Note: This assumes the client supports subscription via this method or we need a proper subscription query
+        // For standard Linera GraphQL:
+        const subscriptionQuery = `subscription { events }`;
+        // WARNING: 'service.rs' currently uses EmptySubscription. 
+        // If this query fails, you may need to implement 'SubscriptionRoot' in 'service.rs' using 'async-graphql' 
+        // or rely on the Linera Client's system notification stream instead of app-level GraphQL.
+        // This part depends on the specific client implementation. 
+        // If 'subscribe' returns an observable/async iterable:
+        try {
+            // @ts-ignore
+            const subscription = await application.subscribe(subscriptionQuery);
+            // @ts-ignore
+            for await (const response of subscription) {
+                if (response.data && response.data.events) {
+                    callback(response.data.events);
+                }
+            }
+        } catch (e) {
+            console.error("Subscription failed/not supported:", e);
+        }
     }
 }
 

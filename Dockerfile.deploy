@@ -1,0 +1,47 @@
+# Dockerfile for deploying Type Arena to Linera Conway Testnet
+# Uses Linera SDK v0.15.8 to match Conway testnet requirements
+FROM rust:1.82-bookworm
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    clang \
+    protobuf-compiler \
+    libssl-dev \
+    pkg-config \
+    git \
+    jq \
+    curl \
+    cmake \
+    && rm -rf /var/lib/apt/lists/*
+
+# Clone the Linera protocol repository at v0.15.8 tag
+WORKDIR /build
+RUN git clone --depth 1 --branch v0.15.8 https://github.com/linera-io/linera-protocol.git
+
+# Build and install linera-service from source
+WORKDIR /build/linera-protocol
+RUN cargo build --release -p linera-service --features storage-service
+RUN cp target/release/linera /usr/local/bin/
+
+# Add WASM target
+RUN rustup target add wasm32-unknown-unknown
+
+# Set up working directory
+WORKDIR /app
+
+# Copy project files
+COPY contracts/ ./contracts/
+COPY deploy_conway.sh ./
+
+# Make deployment script executable
+RUN chmod +x deploy_conway.sh
+
+# Create directory for Linera wallet
+RUN mkdir -p /root/.config/linera
+
+# Set environment variables
+ENV RUST_BACKTRACE=1
+ENV CARGO_NET_GIT_FETCH_WITH_CLI=true
+
+# Run deployment script
+CMD ["./deploy_conway.sh"]

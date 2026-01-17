@@ -1,13 +1,29 @@
-﻿/target
-/dist
-/node_modules
-/w64devkit
-/protoc
-*.log
-*.ps1
-!deploy.ps1
-!install_linera.ps1
-.env
+﻿# General Directories
+target/
+dependencies/
+dist/
+node_modules/
+
+# IDE & System
+.idea/
+.vscode/
 .DS_Store
-wallet.json
-keystore.json
+*.iml
+*.log
+
+# App specific
+wallet*.json
+storage.db
+history.db
+
+# Specific Build Artifacts
+contracts/type_arena/build_output*.txt
+contracts/type_arena/build_status.txt
+contracts/type_arena/target/
+
+# Local Toolchains (Large binaries)
+protoc/
+w64devkit/
+*_git.bat
+*_fix.bat
+*.zip

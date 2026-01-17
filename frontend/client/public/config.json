@@ -1,0 +1,7 @@
+{
+    "chainId": "8fd4233c5d03554f87d47a711cf70619727ca3d148353446cab81fb56922c9b7",
+    "marketAppId": null,
+    "tokenAppId": "",
+    "oracleAppId": "",
+    "_comment": "Conway testnet chainId set. marketAppId pending contract deployment."
+}

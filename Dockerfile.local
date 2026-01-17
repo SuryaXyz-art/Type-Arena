@@ -1,0 +1,16 @@
+FROM rust:1.79-bookworm
+
+# Install dependencies
+RUN apt-get update && apt-get install -y protobuf-compiler clang jq netcat-openbsd curl
+
+# Install Linera CLI 0.16.0 (matching local version if possible, otherwise latest)
+# Using 0.16.0 explicitly to match the commands used in script
+RUN cargo install linera-service --version 0.16.0 --features storage-service
+
+WORKDIR /app
+
+# Copy deploy script
+COPY run_docker_internal.sh /usr/local/bin/run_docker_internal.sh
+RUN chmod +x /usr/local/bin/run_docker_internal.sh
+
+CMD ["run_docker_internal.sh"]

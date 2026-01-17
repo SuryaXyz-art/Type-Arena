@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  # Deployment service - builds and deploys contracts to Conway testnet
+  deploy:
+    build:
+      context: .
+      dockerfile: Dockerfile.deploy
+    container_name: type-arena-deploy
+    volumes:
+      # Persist wallet data
+      - linera-wallet:/root/.config/linera
+      # Mount frontend config to access updated values
+      - ./frontend/client/public:/app/frontend/client/public
+    environment:
+      - RUST_BACKTRACE=1
+      - CARGO_NET_GIT_FETCH_WITH_CLI=true
+    networks:
+      - type-arena-network
+
+  # Frontend service - serves the built frontend
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: type-arena-frontend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - deploy
+    networks:
+      - type-arena-network
+    restart: unless-stopped
+
+volumes:
+  linera-wallet:
+    driver: local
+
+networks:
+  type-arena-network:
+    driver: bridge
