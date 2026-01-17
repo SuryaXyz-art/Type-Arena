@@ -1,0 +1,125 @@
+﻿cargo :    Compiling type_arena v0.1.0 (C:\Users\msi\Desktop\Linera PJ 1\Type 
+Arena\type-arena\contracts\type_arena)
+At line:1 char:98
++ ...  $env:PATH; cargo build --release --target wasm32-unknown-unknown 2>& ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (   Compiling ty...cts\type_arena):String) [ 
+   ], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `type_arena`
+ --> src\contract.rs:3:5
+  |
+3 | use type_arena::state::TypeArenaState;
+  |     ^^^^^^^^^^ use of unresolved module or unlinked crate `type_arena`
+  |
+  = help: if you wanted to use a crate named `type_arena`, use `cargo add type_arena` to 
+add it to your `Cargo.toml`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `type_arena`
+ --> src\service.rs:3:5
+  |
+3 | use type_arena::state::TypeArenaState;
+  |     ^^^^^^^^^^ use of unresolved module or unlinked crate `type_arena`
+  |
+  = help: if you wanted to use a crate named `type_arena`, use `cargo add type_arena` to 
+add it to your `Cargo.toml`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `type_arena`
+ --> src\service.rs:4:5
+  |
+4 | use type_arena::state::{Room, PlayerStats};
+  |     ^^^^^^^^^^ use of unresolved module or unlinked crate `type_arena`
+  |
+  = help: if you wanted to use a crate named `type_arena`, use `cargo add type_arena` to 
+add it to your `Cargo.toml`
+
+error[E0432]: unresolved import `type_arena`
+ --> src\contract.rs:9:5
+  |
+9 | use type_arena::TypeArenaAbi;
+  |     ^^^^^^^^^^ use of unresolved module or unlinked crate `type_arena`
+  |
+  = help: if you wanted to use a crate named `type_arena`, use `cargo add type_arena` to 
+add it to your `Cargo.toml`
+
+error[E0432]: unresolved import `type_arena`
+ --> src\service.rs:8:5
+  |
+8 | use type_arena::TypeArenaAbi;
+  |     ^^^^^^^^^^ use of unresolved module or unlinked crate `type_arena`
+  |
+  = help: if you wanted to use a crate named `type_arena`, use `cargo add type_arena` to 
+add it to your `Cargo.toml`
+
+warning: unused imports: `ViewStorageContext` and `View`
+ --> src\contract.rs:6:23
+  |
+6 |     views::{RootView, View, ViewStorageContext},
+  |                       ^^^^  ^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused imports: `Request` and `Response`
+ --> src\service.rs:5:21
+  |
+5 | use async_graphql::{Request, Response, Schema, Object, EmptyMutation, 
+EmptySubscription};
+  |                     ^^^^^^^  ^^^^^^^^
+
+warning: unused import: `ViewStorageContext`
+ --> src\service.rs:6:57
+  |
+6 | use linera_sdk::{Service, ServiceRuntime, views::{View, ViewStorageContext}, 
+linera_base_types::WithServiceAbi};
+  |                                                         ^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `Message`
+ --> src\lib.rs:7:34
+  |
+7 | use crate::contract::{Operation, Message};
+  |                                  ^^^^^^^
+
+warning: crate-level attribute should be in the root module
+ --> src\contract.rs:1:37
+  |
+1 | #![cfg_attr(target_arch = "wasm32", no_main)]
+  |                                     ^^^^^^^
+  |
+  = note: `#[warn(unused_attributes)]` (part of `#[warn(unused)]`) on by default
+
+warning: crate-level attribute should be in the root module
+ --> src\service.rs:1:37
+  |
+1 | #![cfg_attr(target_arch = "wasm32", no_main)]
+  |                                     ^^^^^^^
+
+warning: unused import: `View`
+ --> src\service.rs:6:51
+  |
+6 | use linera_sdk::{Service, ServiceRuntime, views::{View, ViewStorageContext}, 
+linera_base_types::WithServiceAbi};
+  |                                                   ^^^^
+
+warning: unreachable expression
+  --> src\contract.rs:12:1
+   |
+12 | linera_sdk::contract!(TypeArena);
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   | |
+   | unreachable expression
+   | any code following this expression is unreachable
+   |
+note: this expression has type `Message`, which is uninhabited
+  --> src\contract.rs:12:1
+   |
+12 | linera_sdk::contract!(TypeArena);
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = note: `#[warn(unreachable_code)]` (part of `#[warn(unused)]`) on by default
+   = note: this warning originates in the macro `linera_sdk::contract` (in Nightly 
+builds, run with -Z macro-backtrace for more info)
+
+Some errors have detailed explanations: E0432, E0433.
+For more information about an error, try `rustc --explain E0432`.
+warning: `type_arena` (lib) generated 8 warnings
+error: could not compile `type_arena` (lib) due to 5 previous errors; 8 warnings emitted

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ﻿# General Directories
 target/
 dependencies/
@@ -7,6 +8,19 @@ node_modules/
 # IDE & System
 .idea/
 .vscode/
+=======
+﻿/target
+/dist
+/node_modules
+/w64devkit
+/protoc
+*.log
+*.ps1
+!deploy.ps1
+!install_linera.ps1
+!deploy_testnet.ps1
+.env
+>>>>>>> f1ecb0240057cac3f12322e875c2f72f9f478dd9
 .DS_Store
 *.iml
 *.log

@@ -1,0 +1,10 @@
+C:\Users\msi\Desktop\Linera PJ 1\Type Arena\type-arena\contracts\type_arena\target\release\deps\wit_bindgen_core-351ba34ae4ce2fdb.d: C:\Users\msi\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\wit-bindgen-core-0.24.0\src\lib.rs C:\Users\msi\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\wit-bindgen-core-0.24.0\src\abi.rs C:\Users\msi\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\wit-bindgen-core-0.24.0\src\ns.rs C:\Users\msi\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\wit-bindgen-core-0.24.0\src\source.rs
+
+C:\Users\msi\Desktop\Linera PJ 1\Type Arena\type-arena\contracts\type_arena\target\release\deps\libwit_bindgen_core-351ba34ae4ce2fdb.rlib: C:\Users\msi\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\wit-bindgen-core-0.24.0\src\lib.rs C:\Users\msi\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\wit-bindgen-core-0.24.0\src\abi.rs C:\Users\msi\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\wit-bindgen-core-0.24.0\src\ns.rs C:\Users\msi\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\wit-bindgen-core-0.24.0\src\source.rs
+
+C:\Users\msi\Desktop\Linera PJ 1\Type Arena\type-arena\contracts\type_arena\target\release\deps\libwit_bindgen_core-351ba34ae4ce2fdb.rmeta: C:\Users\msi\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\wit-bindgen-core-0.24.0\src\lib.rs C:\Users\msi\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\wit-bindgen-core-0.24.0\src\abi.rs C:\Users\msi\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\wit-bindgen-core-0.24.0\src\ns.rs C:\Users\msi\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\wit-bindgen-core-0.24.0\src\source.rs
+
+C:\Users\msi\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\wit-bindgen-core-0.24.0\src\lib.rs:
+C:\Users\msi\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\wit-bindgen-core-0.24.0\src\abi.rs:
+C:\Users\msi\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\wit-bindgen-core-0.24.0\src\ns.rs:
+C:\Users\msi\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\wit-bindgen-core-0.24.0\src\source.rs:

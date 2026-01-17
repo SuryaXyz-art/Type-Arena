@@ -1,6 +1,6 @@
 On branch main
-Your branch is behind 'origin/main' by 1 commit, and can be fast-forwarded.
-  (use "git pull" to update your local branch)
+Your branch is ahead of 'origin/main' by 1 commit.
+  (use "git push" to publish your local commits)
 
 Changes not staged for commit:
   (use "git add/rm <file>..." to update what will be committed)
@@ -78,15 +78,18 @@ Untracked files:
 	Dockerfile.local
 	README.md
 	contracts/type_arena/.cargo/
+	contracts/type_arena/build_output.txt
+	contracts/type_arena/build_output2.txt
+	contracts/type_arena/build_output3.txt
+	contracts/type_arena/build_status.txt
+	contracts/type_arena/target/
+	debug_git.bat
+	dependencies/
 	deploy_docker.sh
 	deploy_testnet.ps1
 	frontend/client/public/config.json
 	git_debug.txt
-	push_log.txt
-	repo_files.txt
 	run_docker_internal.sh
-	run_local.ps1
-	run_local_docker.ps1
 
 no changes added to commit (use "git add" and/or "git commit -a")
 origin	https://github.com/SuryaXyz-art/Type-Arena.git (fetch)

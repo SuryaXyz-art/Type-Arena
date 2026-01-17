@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Dockerfile for deploying Type Arena to Linera Conway Testnet
 # Uses Linera SDK v0.15.8 to match Conway testnet requirements
 FROM rust:1.82-bookworm
@@ -45,3 +46,20 @@ ENV CARGO_NET_GIT_FETCH_WITH_CLI=true
 
 # Run deployment script
 CMD ["./deploy_conway.sh"]
+=======
+FROM rust:1.79-bookworm
+
+# Install dependencies
+RUN apt-get update && apt-get install -y protobuf-compiler clang jq
+
+# Install Linera CLI 0.15.8 (matching SDK)
+RUN cargo install linera-service --version 0.15.8 --features storage-service
+
+WORKDIR /app
+
+# Copy deploy script
+COPY deploy_docker.sh /usr/local/bin/deploy_docker.sh
+RUN chmod +x /usr/local/bin/deploy_docker.sh
+
+CMD ["deploy_docker.sh"]
+>>>>>>> f1ecb0240057cac3f12322e875c2f72f9f478dd9
